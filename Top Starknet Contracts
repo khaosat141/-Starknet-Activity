@@ -1,0 +1,34 @@
+with top_contracts as (
+SELECT contract_address, count(*) as number_of_calls, count(distinct caller_address) as callers
+    , count(distinct transaction_hash) as distinct_tx
+    , CASE 
+when contract_address = 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7 then 'ETH token'
+when contract_address = 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d then 'STRK token'
+when contract_address = 0x00000005dd3d2f4429af886cd1a3b08289dbcea99a294197e9eb43b0e0325b4b then 'Ekubo'
+when contract_address = 0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8 then 'USDC Token'
+when contract_address = 0x0422d33a3638dcc4c62e72e1d6942cd31eb643ef596ccac2351e0e21f6cd4bf4 then 'Influence'
+when contract_address = 0x04505a9f06f2bd639b6601f37a4dc0908bb70e8e0e0c34b1220827d64f4fc066 then null
+when contract_address = 0x04270219d365d6b017231b52e92b3fb5d7c8378b05e9abc97724537a80e93b0f then 'AVNU'
+when contract_address = 0x02a85bd616f912537c50a49a4076db02c00b29b2cdc8a197ce92ed1837fa875b then 'Pragma'
+when contract_address = 0x043e4f09c32d13d43a880e85f69f7de93ceda62d6cf2581a582c6db635548fdc then null
+when contract_address = 0x073f6addc9339de9822cab4dac8c9431779c09077f02ba7bc36904ea342dd9eb then 'Nostra'
+when contract_address = 0x059a943ca214c10234b9a3b61c558ac20c005127d183b86a99a8f3c60a08b4ff then 'Nostra Interest Rate Model'
+when contract_address = 0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8 then 'USDT Token'
+when contract_address = 0x01114c7103e12c2b2ecbd3a2472ba9c48ddcbf702b1c242dd570057e26212111 then 'mySwap: CL AMM Swap'
+when contract_address = 0x07b696af58c967c1b14c9dde0ace001720635a660a8e90c565ea459345318b30 then 'Ekubo: Positions NFT'
+when contract_address = 0x001258eae3eae5002125bebf062d611a772e8aea3a1879b64a19f363ebd00947 then 'Nostra STRK Debt token'
+when contract_address = 0x07c2e1e733f28daa23e78be3a4f6c724c0ab06af65f6a95b5e0545215f1abc1b then 'Nostra STRK Supply token'
+when contract_address = 0x02e0af29598b407c8716b17f6d2795eca1b471413fa03fb145a5e33722184067 then 'Ekubo: Positions'
+END as label
+FROM starknet.calls
+WHERE   block_time >= now() - interval '7' day
+AND contract_address is not null
+GROUP BY contract_address
+ORDER BY count(distinct transaction_hash) desc
+)
+
+SELECT CONCAT('<a href="https://starkscan.co/contract/', cast(contract_address as varchar),'" target="_blank">',COALESCE(label, cast(contract_address as varchar)),'</a>') as contract_link,
+*
+FROM top_contracts
+ORDER BY distinct_tx desc
+LIMIT 20
